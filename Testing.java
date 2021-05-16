@@ -3,6 +3,7 @@ package gameplaying_algorithms;
 public class Testing {
 
     public static void main(String[] args) {
+
         Gomoku game = new Gomoku();
         System.out.println(game.getBoard());
         int counter = 0;
@@ -28,5 +29,4 @@ public class Testing {
             }
         }
     }
-
 }

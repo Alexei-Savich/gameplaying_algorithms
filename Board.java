@@ -2,9 +2,22 @@ package gameplaying_algorithms;
 
 public class Board {
 
+    private static final String TEXT_RESET = "\u001B[0m";
+    private static final String TEXT_BLACK = "\u001B[30m";
+    private static final String TEXT_RED = "\u001B[31m";
+    private static final String TEXT_GREEN = "\u001B[32m";
+    private static final String TEXT_YELLOW = "\u001B[33m";
+    private static final String TEXT_BLUE = "\u001B[34m";
+    private static final String TEXT_PURPLE = "\u001B[35m";
+    private static final String TEXT_CYAN = "\u001B[36m";
+    private static final String TEXT_WHITE = "\u001B[37m";
+
+
     private final int sizeX;
     private final int sizeY;
     private Cell[][] cells;
+    private boolean whiteWon = false;
+    private boolean blackWon = false;
 
     public Board(int x, int y) {
         sizeX = x;
@@ -29,6 +42,22 @@ public class Board {
         return rowsCheck() || columnsCheck() || diagonalsCheck();
     }
 
+    //todo improve
+    public int evaluate(Color c){
+        if(c == Color.BLACK && blackWon){
+            return 1000;
+        }
+        if(c == Color.BLACK && whiteWon){
+            return -1000;
+        }
+        if(c == Color.WHITE && blackWon){
+            return -1000;
+        }
+        if(c == Color.WHITE && whiteWon){
+            return 1000;
+        }
+        return 0;
+    }
     private boolean rowsCheck() {
         int blackCounter;
         int whiteCounter;
@@ -49,7 +78,12 @@ public class Board {
                         blackCounter++;
                     }
                 }
-                if (whiteCounter == 5 || blackCounter == 5) {
+                if (whiteCounter == 5 ) {
+                    whiteWon = true;
+                    return true;
+                }
+                if(blackCounter == 5){
+                    blackWon = true;
                     return true;
                 }
             }
@@ -77,7 +111,12 @@ public class Board {
                         blackCounter++;
                     }
                 }
-                if (whiteCounter == 5 || blackCounter == 5) {
+                if (whiteCounter == 5 ) {
+                    whiteWon = true;
+                    return true;
+                }
+                if(blackCounter == 5){
+                    blackWon = true;
                     return true;
                 }
             }
@@ -109,7 +148,12 @@ public class Board {
                         blackCounter++;
                     }
                 }
-                if (whiteCounter == 5 || blackCounter == 5) {
+                if (whiteCounter == 5 ) {
+                    whiteWon = true;
+                    return true;
+                }
+                if(blackCounter == 5){
+                    blackWon = true;
                     return true;
                 }
             }
@@ -137,7 +181,12 @@ public class Board {
                         blackCounter++;
                     }
                 }
-                if (whiteCounter == 5 || blackCounter == 5) {
+                if (whiteCounter == 5 ) {
+                    whiteWon = true;
+                    return true;
+                }
+                if(blackCounter == 5){
+                    blackWon = true;
                     return true;
                 }
             }
@@ -165,7 +214,12 @@ public class Board {
                         blackCounter++;
                     }
                 }
-                if (whiteCounter == 5 || blackCounter == 5) {
+                if (whiteCounter == 5 ) {
+                    whiteWon = true;
+                    return true;
+                }
+                if(blackCounter == 5){
+                    blackWon = true;
                     return true;
                 }
             }
@@ -193,7 +247,12 @@ public class Board {
                         blackCounter++;
                     }
                 }
-                if (whiteCounter == 5 || blackCounter == 5) {
+                if (whiteCounter == 5 ) {
+                    whiteWon = true;
+                    return true;
+                }
+                if(blackCounter == 5){
+                    blackWon = true;
                     return true;
                 }
             }
@@ -209,14 +268,46 @@ public class Board {
                 Piece curr = cells[i][j].getPiece();
                 if (curr != null) {
                     if (curr.getColour().equals(Color.WHITE))
-                        System.out.print("W\t");
-                    else System.out.print("B\t");
+                        System.out.print(TEXT_BLUE+"W\t"+TEXT_RESET);
+                    else System.out.print(TEXT_RED+"B\t"+TEXT_RESET);
                 } else {
-                    System.out.print((i * 15 + j) + "\t");
+                    System.out.print(TEXT_WHITE+(i * 15 + j) + "\t"+TEXT_RESET);
                 }
             }
             System.out.println();
         }
         return s;
+    }
+
+
+    //todo check
+    @Override
+    public Board clone(){
+        Board b = new Board(sizeX, sizeY);
+        for(int i = 0; i < cells.length; i++){
+            for (int j = 0; j < cells[i].length; j++) {
+                Piece p = cells[i][j].getPiece();
+                if(p != null){
+                    b.cells[i][j].addPiece(p.getColour());
+                }
+            }
+        }
+        return b;
+    }
+
+    public int numOfFreePlaces(){
+        int counter = 0;
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++) {
+                if(cells[i][j].isEmpty()){
+                    counter++;
+                }
+            }
+        }
+        return counter;
+    }
+
+    public Cell[][] getCells() {
+        return cells;
     }
 }
