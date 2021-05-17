@@ -1,9 +1,8 @@
 package gameplaying_algorithms;
 
-public class Testing {
+public class SmallTests {
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args){
         Gomoku game = new Gomoku();
         System.out.println(game.getBoard());
         int counter = 0;
@@ -13,7 +12,9 @@ public class Testing {
                 game.nextStep(Color.WHITE);
             } else {
                 System.out.println("Turn of the black:");
-                game.nextStep(Color.BLACK);
+                int depth = 3;
+                MinMax mm = new MinMax(game.getBoard(), Color.BLACK, depth);
+                game.nextStepAI(Color.BLACK, mm.nextStep());
             }
             System.out.println(game.getBoard());
             counter++;
@@ -29,4 +30,5 @@ public class Testing {
             }
         }
     }
+
 }

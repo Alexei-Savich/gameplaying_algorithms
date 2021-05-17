@@ -22,6 +22,15 @@ public class Cell {
         return false;
     }
 
+    public boolean removePiece(){
+        if(!isEmpty){
+            piece = null;
+            isEmpty = true;
+            return true;
+        }
+        return false;
+    }
+
 
     public boolean isEmpty() {
         return isEmpty;
