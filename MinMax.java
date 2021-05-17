@@ -1,102 +1,141 @@
 package gameplaying_algorithms;
 
-import org.w3c.dom.Node;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class MinMax {
 
-    private GameTree tree;
-    private Color color;
-    private int depth;
-    private Board startingBoard;
-    private final Cell[][] startingCells;
+    private final Board startingBoard;
+    private final Color color;
+    private final int depth;
 
-    public MinMax(Color c, Board b, int depth) {
-        color = c;
-        tree = new GameTree(b, b.numOfFreePlaces());
+    public MinMax(Board startingBoard, Color color, int depth) {
+        this.startingBoard = startingBoard.clone();
+        this.color = color;
         this.depth = depth;
-        startingBoard = b;
-        this.startingCells = b.getCells();
     }
 
-    public void generateFirstLevel() {
-        int startingSize = startingBoard.numOfFreePlaces();
-        Board[] boards = new Board[startingSize];
-        for (int i = 0; i < boards.length; i++) {
-            boards[i] = startingBoard.clone();
-        }
-        int currX = 0;
-        int currY = 0;
-        for (int currBoard = 0; currBoard < startingSize; currBoard++) {
-            while (!startingCells[currX][currY].isEmpty()) {
-                if (currY == 14) {
-                    currY = 0;
-                    currX++;
-                } else {
-                    currY++;
-                }
-            }
-            boards[currBoard].nextStep(currX, currY, color);
-            if (currY == 14) {
-                currY = 0;
-                currX++;
-            } else {
-                currY++;
+    public String nextStep() {
+        InformationAboutStep[] info = generateFirstLevel();
+        evaluateFirstLevel(info);
+        int max = Integer.MIN_VALUE;
+        for (InformationAboutStep i : info) {
+            if (i.getValue() > max) {
+                max = i.getValue();
             }
         }
-        tree.addChildren(tree.getRoot(), boards);
+        ArrayList<InformationAboutStep> best = new ArrayList<>();
+        for (InformationAboutStep i : info) {
+            if (i.getValue() == max) {
+                best.add(i);
+            }
+        }
+        Random rand = new Random();
+        int nextStep = rand.nextInt(best.size());
+        int x = best.get(nextStep).getX();
+        int y = best.get(nextStep).getY();
+        int result = x * 15 + y;
+        return result + "";
     }
 
-    public void generateLevels(int numberLeft, GameTree.Node node, Color c) {
-        if (numberLeft == 0) {
-            return;
-        }
-        Board currentBoard = node.value;
-        int startingSize = currentBoard.numOfFreePlaces();
-        Cell[][] cells = currentBoard.getCells();
-        Board[] boards = new Board[startingSize];
-        for (int i = 0; i < boards.length; i++) {
-            boards[i] = currentBoard.clone();
-        }
-        int currX = 0;
-        int currY = 0;
-        for (int currBoard = 0; currBoard < startingSize; currBoard++) {
-            while (!cells[currX][currY].isEmpty()) {
-                if (currY == 14) {
-                    currY = 0;
-                    currX++;
+    public InformationAboutStep[] generateFirstLevel() {
+        InformationAboutStep[] info = new InformationAboutStep[startingBoard.numOfFreePlaces()];
+        int x = 0;
+        int y = 0;
+        Cell[][] cells = startingBoard.getCells();
+        //todo double for
+        for (int currElement = 0; currElement < info.length; currElement++) {
+            while (!cells[x][y].isEmpty()) {
+                if (y == 14) {
+                    y = 0;
+                    x++;
                 } else {
-                    currY++;
+                    y++;
                 }
             }
-            boards[currBoard].nextStep(currX, currY, c);
-            if (currY == 14) {
-                currY = 0;
-                currX++;
+            info[currElement] = new InformationAboutStep(x, y, color);
+            if (y == 14) {
+                y = 0;
+                x++;
             } else {
-                currY++;
+                y++;
             }
         }
+        return info;
+    }
+
+    public void evaluateFirstLevel(InformationAboutStep[] info) {
+        for (InformationAboutStep i : info) {
+            i.setValue(evaluate(depth, startingBoard, color, false));
+        }
+    }
+
+    public int evaluate(int levelsLeft, Board b, Color curr, boolean isMax) {
+        Cell[][] cells = b.getCells();
+        int returnValue = Integer.MIN_VALUE;
+        for (int x = 0; x < cells.length; x++) {
+//            if (levelsLeft > 1) {
+//                System.out.println("Level " + levelsLeft + ", X =" + x + ", val = " + returnValue);
+//            }
+            for (int y = 0; y < cells[x].length; y++) {
+                if (cells[x][y].isEmpty()) {
+                    b.nextStep(x, y, curr);
+                    int val;
+                    if (levelsLeft == 0) {
+                        System.out.println(b.printBoard());
+                        val = b.evaluate(color);
+                        System.out.println(val);
+                    } else {
+                        Color next = nextColor(curr);
+                        boolean newIsMax = minMaxChange(isMax);
+                        val = evaluate(levelsLeft - 1, b, next, newIsMax);
+                    }
+                    if (val == Integer.MIN_VALUE) {
+                        val = b.evaluate(color);
+                        //System.out.println("Error??? " + levelsLeft + ", X " + x + " y = " + y);
+                    }
+//                    if (val != Integer.MIN_VALUE && val != 0) {
+//                        System.out.println("Error??? " + levelsLeft + ", X " + x + " y = " + y + ", val =" + val);
+//                    }
+
+                    if (returnValue == Integer.MIN_VALUE) {
+                        returnValue = val;
+                    } else {
+                        if (isMax) {
+                            if (val > returnValue) {
+                                returnValue = val;
+                            }
+                        } else {
+                            if (val < returnValue) {
+                                returnValue = val;
+                            }
+                        }
+                    }
+                    b.removePiece(x, y);
+                }
+            }
+        }
+        return returnValue;
+    }
+
+    private Color nextColor(Color curr) {
         Color next;
-        if (c.equals(Color.WHITE)) {
+        if (curr.equals(Color.WHITE)) {
             next = Color.BLACK;
         } else {
             next = Color.WHITE;
         }
-        tree.addChildren(node, boards);
-        for (GameTree.Node curr : node.children) {
-            generateLevels(numberLeft - 1, curr, next);
-        }
+        return next;
     }
 
-    //todo this method is done only for testing and is not used anywhere
-    public void printRange(GameTree.Node node, int start, int end) {
-        Board[] boards = tree.getChildren(node);
-        for (int i = start; i <= end; i++) {
-            System.out.println(boards[i]);
+    private boolean minMaxChange(boolean curr) {
+        boolean next;
+        if (curr) {
+            next = false;
+        } else {
+            next = true;
         }
+        return next;
     }
 
-    public GameTree getTree() {
-        return tree;
-    }
 }

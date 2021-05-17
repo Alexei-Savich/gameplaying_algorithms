@@ -4,19 +4,24 @@ public class Cell {
 
     private final int x;
     private final int y;
-    private Piece piece;
-    private boolean isEmpty = true;
+    private Color color = null;
 
     public Cell(int x, int y) {
         this.x = x;
         this.y = y;
-        piece = null;
     }
 
     public boolean addPiece(Color c) {
-        if (isEmpty) {
-            piece = new Piece(x, y, c);
-            isEmpty = false;
+        if (isEmpty()) {
+            color = c;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removePiece(){
+        if(!isEmpty()){
+            color = null;
             return true;
         }
         return false;
@@ -24,10 +29,10 @@ public class Cell {
 
 
     public boolean isEmpty() {
-        return isEmpty;
+        return color == null;
     }
 
-    public Piece getPiece() {
-        return piece;
+    public Color getColor() {
+        return  color;
     }
 }

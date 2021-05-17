@@ -44,6 +44,8 @@ public class Board {
 
     //todo improve
     public int evaluate(Color c){
+        //todo
+        isFinished();
         if(c == Color.BLACK && blackWon){
             return 1000;
         }
@@ -65,12 +67,12 @@ public class Board {
             whiteCounter = 0;
             blackCounter = 0;
             for (int j = 0; j < sizeY; j++) {
-                Piece curr = cells[i][j].getPiece();
-                if (curr == null) {
+                Color c = cells[i][j].getColor();
+                if (c == null) {
                     blackCounter = 0;
                     whiteCounter = 0;
                 } else {
-                    if (curr.getColour().equals(Color.WHITE)) {
+                    if (c.equals(Color.WHITE)) {
                         blackCounter = 0;
                         whiteCounter++;
                     } else {
@@ -98,12 +100,12 @@ public class Board {
             whiteCounter = 0;
             blackCounter = 0;
             for (int j = 0; j < sizeX; j++) {
-                Piece curr = cells[j][i].getPiece();
-                if (curr == null) {
+                Color c = cells[j][i].getColor();
+                if (c == null) {
                     blackCounter = 0;
                     whiteCounter = 0;
                 } else {
-                    if (curr.getColour().equals(Color.WHITE)) {
+                    if (c.equals(Color.WHITE)) {
                         blackCounter = 0;
                         whiteCounter++;
                     } else {
@@ -135,12 +137,12 @@ public class Board {
             blackCounter = 0;
             whiteCounter = 0;
             for (int k = i, j = 0; k < sizeX && j < sizeY; k++, j++) {
-                Piece curr = cells[k][j].getPiece();
-                if (curr == null) {
+                Color c = cells[k][j].getColor();
+                if (c == null) {
                     blackCounter = 0;
                     whiteCounter = 0;
                 } else {
-                    if (curr.getColour().equals(Color.WHITE)) {
+                    if (c.equals(Color.WHITE)) {
                         blackCounter = 0;
                         whiteCounter++;
                     } else {
@@ -168,12 +170,12 @@ public class Board {
             blackCounter = 0;
             whiteCounter = 0;
             for (int yCopy = y, x = 0; yCopy < sizeY && x < sizeX; yCopy++, x++) {
-                Piece curr = cells[x][yCopy].getPiece();
-                if (curr == null) {
+                Color c = cells[x][yCopy].getColor();
+                if (c == null) {
                     blackCounter = 0;
                     whiteCounter = 0;
                 } else {
-                    if (curr.getColour().equals(Color.WHITE)) {
+                    if (c.equals(Color.WHITE)) {
                         blackCounter = 0;
                         whiteCounter++;
                     } else {
@@ -201,12 +203,12 @@ public class Board {
             blackCounter = 0;
             whiteCounter = 0;
             for (int xCopy = i, y = 0; xCopy >= 0 && y < sizeY; xCopy--, y++) {
-                Piece curr = cells[xCopy][y].getPiece();
-                if (curr == null) {
+                Color c = cells[xCopy][y].getColor();
+                if (c == null) {
                     blackCounter = 0;
                     whiteCounter = 0;
                 } else {
-                    if (curr.getColour().equals(Color.WHITE)) {
+                    if (c.equals(Color.WHITE)) {
                         blackCounter = 0;
                         whiteCounter++;
                     } else {
@@ -234,12 +236,12 @@ public class Board {
             blackCounter = 0;
             whiteCounter = 0;
             for (int yCopy = y, x = sizeX - 1; yCopy < sizeY && x >= 0; yCopy++, x--) {
-                Piece curr = cells[x][yCopy].getPiece();
-                if (curr == null) {
+                Color c = cells[x][yCopy].getColor();
+                if (c == null) {
                     blackCounter = 0;
                     whiteCounter = 0;
                 } else {
-                    if (curr.getColour().equals(Color.WHITE)) {
+                    if (c.equals(Color.WHITE)) {
                         blackCounter = 0;
                         whiteCounter++;
                     } else {
@@ -260,14 +262,14 @@ public class Board {
         return false;
     }
 
-    @Override
-    public String toString() {
+    public String printBoard() {
         String s = "";
         for (int i = 0; i < sizeX; i++) {
             for (int j = 0; j < sizeY; j++) {
-                Piece curr = cells[i][j].getPiece();
-                if (curr != null) {
-                    if (curr.getColour().equals(Color.WHITE))
+                //Piece curr = cells[i][j].getPiece();
+                Color col = cells[i][j].getColor();
+                if (col != null) {
+                    if (col.equals(Color.WHITE))
                         System.out.print(TEXT_BLUE+"W\t"+TEXT_RESET);
                     else System.out.print(TEXT_RED+"B\t"+TEXT_RESET);
                 } else {
@@ -286,9 +288,9 @@ public class Board {
         Board b = new Board(sizeX, sizeY);
         for(int i = 0; i < cells.length; i++){
             for (int j = 0; j < cells[i].length; j++) {
-                Piece p = cells[i][j].getPiece();
-                if(p != null){
-                    b.cells[i][j].addPiece(p.getColour());
+                Color c = cells[i][j].getColor();
+                if(c != null){
+                    b.cells[i][j].addPiece(c);
                 }
             }
         }
@@ -310,4 +312,11 @@ public class Board {
     public Cell[][] getCells() {
         return cells;
     }
+
+    public boolean removePiece(int x, int y){
+        whiteWon = false;
+        blackWon = false;
+        return cells[x][y].removePiece();
+    }
+
 }

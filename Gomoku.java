@@ -34,6 +34,22 @@ public class Gomoku {
         }
     }
 
+    public void nextStepAI(Color c, String s) {
+        int coordinates = stringToCoordinates(s);
+        while (coordinates == -1) {
+            System.out.println("Invalid input!");
+            coordinates = stringToCoordinates(s);
+        }
+        while (!board.nextStep(coordinates / 15, coordinates % 15, c)) {
+            System.out.println("This field is occupied");
+            coordinates = stringToCoordinates(s);
+            while (coordinates == -1) {
+                System.out.println("Invalid input!");
+                coordinates = stringToCoordinates(s);
+            }
+        }
+    }
+
     private int stringToCoordinates(String s) {
         if (s.matches("[0-9]{1,3}")) {
             int toReturn = Integer.parseInt(s);
