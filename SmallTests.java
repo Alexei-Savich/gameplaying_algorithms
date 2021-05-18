@@ -2,7 +2,7 @@ package gameplaying_algorithms;
 
 public class SmallTests {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Gomoku game = new Gomoku();
         System.out.println(game.getBoard().printBoard());
         int counter = 0;
@@ -11,12 +11,17 @@ public class SmallTests {
                 System.out.println("Turn of the white:");
                 game.nextStep(Color.WHITE);
             } else {
-                System.out.println("Turn of the black:");
-                int depth = 0;
-                MinMax mm = new MinMax(game.getBoard(), Color.BLACK, depth);
-                String nextStep = mm.nextStep();
-                System.out.println(nextStep);
-                game.nextStepAI(Color.BLACK, nextStep);
+                if (counter > 10) {
+                    System.out.println("Turn of the black:");
+                    int depth = 1;
+                    MinMax mm = new MinMax(game.getBoard(), Color.BLACK, depth);
+                    String nextStep = mm.nextStep();
+                    System.out.println(nextStep);
+                    game.nextStepAI(Color.BLACK, nextStep);
+                } else {
+                    System.out.println("Turn of the black:");
+                    game.nextStep(Color.BLACK);
+                }
             }
             System.out.println(game.getBoard().printBoard());
             counter++;
@@ -34,3 +39,17 @@ public class SmallTests {
     }
 
 }
+/*
+0
+220
+1
+206
+22
+192
+66
+178
+88
+224
+55
+44
+ */

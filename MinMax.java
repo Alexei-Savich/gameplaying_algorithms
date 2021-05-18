@@ -66,8 +66,15 @@ public class MinMax {
 
     public void evaluateFirstLevel(InformationAboutStep[] info) {
         for (InformationAboutStep i : info) {
-            i.setValue(evaluate(depth, startingBoard, color, false));
+            startingBoard.nextStep(i.getX(), i.getY(), color);
+            if (startingBoard.isFinished()) {
+                i.setValue(startingBoard.scoreOfTheBoard(color));
+            } else {
+                i.setValue(evaluate(depth - 1, startingBoard, nextColor(color), false));
+            }
+            startingBoard.removePiece(i.getX(), i.getY());
         }
+
     }
 
     public int evaluate(int levelsLeft, Board b, Color curr, boolean isMax) {
@@ -80,18 +87,21 @@ public class MinMax {
             for (int y = 0; y < cells[x].length; y++) {
                 if (cells[x][y].isEmpty()) {
                     b.nextStep(x, y, curr);
+                    if (x == 10 && y == 14) {
+                        System.out.println(b.printBoard());
+                    }
                     int val;
                     if (levelsLeft == 0) {
-                        System.out.println(b.printBoard());
-                        val = b.evaluate(color);
-                        System.out.println(val);
+                        //System.out.println(b.printBoard());
+                        val = b.scoreOfTheBoard(color);
+                        //System.out.println(val);
                     } else {
                         Color next = nextColor(curr);
                         boolean newIsMax = minMaxChange(isMax);
                         val = evaluate(levelsLeft - 1, b, next, newIsMax);
                     }
                     if (val == Integer.MIN_VALUE) {
-                        val = b.evaluate(color);
+                        val = b.scoreOfTheBoard(color);
                         //System.out.println("Error??? " + levelsLeft + ", X " + x + " y = " + y);
                     }
 //                    if (val != Integer.MIN_VALUE && val != 0) {
