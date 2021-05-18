@@ -18,6 +18,8 @@ public class Board {
     private Cell[][] cells;
     private boolean whiteWon = false;
     private boolean blackWon = false;
+    private int numberOfFreeSpaces;
+    private boolean isFinished = false;
 
     public Board(int x, int y) {
         sizeX = x;
@@ -28,148 +30,109 @@ public class Board {
                 cells[i][j] = new Cell(i, j);
             }
         }
+        numberOfFreeSpaces = x * y;
     }
 
     public boolean nextStep(int x, int y, Color c) {
         if (cells[x][y].isEmpty()) {
             cells[x][y].addPiece(c);
             checkForWinner(x, y, c);
+            numberOfFreeSpaces--;
             return true;
         }
         return false;
     }
 
     public boolean isFinished() {
-        return blackWon || whiteWon;
+        return isFinished;
     }
 
-    public void checkForWinner(int x, int y, Color checkingColor) {
+    public void checkForWinner(int y, int x, Color checkingColor) {
+
+        int minY = Math.max(y - 4, 0);
+        int maxY = Math.min(y + 4, sizeY - 1);
+        int maxX = Math.min(x + 4, sizeX - 1);
+        int minX = Math.max(x - 4, 0);
+
 
         int counter = 0;
-        int leftX = x - 4;
-        if (leftX >= 0) {
-            for (int currX = x; currX >= leftX; currX--) {
-                Color c = cells[currX][y].getColor();
+        if (maxY - minY >= 4) {
+            for (int currY = minY; currY <= maxY; currY++) {
+                Color c = cells[currY][x].getColor();
                 if (c == checkingColor) {
                     counter++;
-                } else
+                    if (counter == 5) {
+                        setWinner(checkingColor);
+                        return;
+                    }
+                } else {
                     counter = 0;
+                }
             }
-        }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
-        }
-        int rightX = x + 4;
-        if (rightX < sizeX) {
-            for (int currX = x; currX <= rightX; currX++) {
-                Color c = cells[currX][y].getColor();
-                if (c == checkingColor) {
-                    counter++;
-                } else
-                    break;
-            }
-        }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
-        }
-
-
-        counter = 0;
-        int upY = y + 4;
-        if (upY < sizeY) {
-            for (int currY = y; currY <= upY; currY++) {
-                Color c = cells[x][currY].getColor();
-                if (c == checkingColor) {
-                    counter++;
-                } else
-                    break;
-            }
-        }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
-        }
-
-
-        counter = 0;
-        int downY = y - 4;
-        if (downY >= 0) {
-            for (int currY = x; currY >= downY; currY--) {
-                Color c = cells[x][currY].getColor();
-                if (c == checkingColor) {
-                    counter++;
-                } else
-                    break;
-            }
-        }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
         }
 
         counter = 0;
-        if (upY < sizeY && leftX >= 0) {
-            for (int currX = x, currY = y; currY <= upY; currX--, currY++) {
-                Color c = cells[currX][currY].getColor();
+        if (maxX - minX >= 4) {
+            for (int currX = minX; currX <= maxX; currX++) {
+                Color c = cells[y][currX].getColor();
                 if (c == checkingColor) {
                     counter++;
-                } else
-                    break;
+                    if (counter == 5) {
+                        setWinner(checkingColor);
+                        return;
+                    }
+                } else {
+                    counter = 0;
+                }
             }
         }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
-        }
 
+        int deltaMinY = y - minY;
+        int deltaMaxY = maxY - y;
+        int deltaMaxX = maxX - x;
+        int deltaMinX = x - minX;
 
-        counter = 0;
-        if (upY < sizeY && rightX < sizeX) {
-            for (int currX = x, currY = y; currY <= upY; currX++, currY++) {
-                Color c = cells[currX][currY].getColor();
+        minX = x - Math.min(deltaMaxY, deltaMinX);
+        maxY = y + Math.min(deltaMaxY, deltaMinX);
+
+        maxX = x + Math.min(deltaMinY, deltaMaxX);
+        minY = y - Math.min(deltaMinY, deltaMaxX);
+
+        if (maxX - minX >= 4) {
+            for (int currX = minX, currY = maxY; currX <= maxX; currX++, currY--) {
+                Color c = cells[currY][currX].getColor();
                 if (c == checkingColor) {
                     counter++;
-                } else
-                    break;
+                    if (counter == 5) {
+                        setWinner(checkingColor);
+                        return;
+                    }
+                } else {
+                    counter = 0;
+                }
             }
         }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
-        }
 
-        counter = 0;
-        if (downY >= 0 && leftX >= 0) {
-            for (int currX = x, currY = y; currY >= downY; currX--, currY--) {
-                Color c = cells[currX][currY].getColor();
+        minX = x - Math.min(deltaMinX, deltaMinY);
+        minY = y - Math.min(deltaMinX, deltaMinY);
+
+        maxX = x + Math.min(deltaMaxX, deltaMaxY);
+        maxY = y + Math.min(deltaMaxX, deltaMaxY);
+
+        if (maxX - minX >= 4){
+            for(int currX = minX, currY = minY; currX <= maxX; currX++, currY++){
+                Color c = cells[currY][currX].getColor();
                 if (c == checkingColor) {
                     counter++;
-                } else
-                    break;
+                    if (counter == 5) {
+                        setWinner(checkingColor);
+                        return;
+                    }
+                } else {
+                    counter = 0;
+                }
             }
         }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
-        }
-
-        counter = 0;
-        if (downY >= 0 && rightX < sizeX) {
-            for (int currX = x, currY = y; currY >= downY; currX++, currY--) {
-                Color c = cells[currX][currY].getColor();
-                if (c == checkingColor) {
-                    counter++;
-                } else
-                    break;
-            }
-        }
-        if (counter == 5) {
-            setWinner(checkingColor);
-            return;
-        }
-
     }
 
     //todo improve
@@ -222,15 +185,7 @@ public class Board {
     }
 
     public int numOfFreePlaces() {
-        int counter = 0;
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
-                if (cells[i][j].isEmpty()) {
-                    counter++;
-                }
-            }
-        }
-        return counter;
+        return numberOfFreeSpaces;
     }
 
     public Cell[][] getCells() {
@@ -240,16 +195,19 @@ public class Board {
     public boolean removePiece(int x, int y) {
         whiteWon = false;
         blackWon = false;
+        //todo maybe check of this cell is empty
+        //(this method is called only in MinMax -> piece would be ALWAYS removed)
+        numberOfFreeSpaces++;
         return cells[x][y].removePiece();
     }
 
-    public void setWinner(Color color){
-        if(color == Color.WHITE){
+    public void setWinner(Color color) {
+        if (color == Color.WHITE) {
             whiteWon = true;
-        }
-        else {
+        } else {
             blackWon = true;
         }
+        isFinished = true;
     }
 
 }

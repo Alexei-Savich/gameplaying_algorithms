@@ -13,7 +13,7 @@ public class SmallTests {
             } else {
                 if (counter > 10) {
                     System.out.println("Turn of the black:");
-                    int depth = 1;
+                    int depth = 3;
                     MinMax mm = new MinMax(game.getBoard(), Color.BLACK, depth);
                     String nextStep = mm.nextStep();
                     System.out.println(nextStep);

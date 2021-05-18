@@ -16,7 +16,7 @@ public class PlayerVSPlayer {
                 game.nextStep(Color.BLACK);
             }
             System.out.println(game.getBoard().printBoard());
-            System.out.println(game.getBoard().scoreOfTheBoard(Color.BLACK));
+            //System.out.println(game.getBoard().scoreOfTheBoard(Color.BLACK));
             counter++;
         }
         if (counter == 225) {
