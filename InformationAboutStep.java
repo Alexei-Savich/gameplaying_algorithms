@@ -5,12 +5,10 @@ public class InformationAboutStep {
     private final int x;
     private final int y;
     private Integer value;
-    private final Color color;
 
-    public InformationAboutStep(int x, int y, Color color){
+    public InformationAboutStep(int x, int y){
         this.x = x;
         this.y = y;
-        this.color = color;
         value = null;
     }
 
@@ -35,8 +33,5 @@ public class InformationAboutStep {
         this.value = value;
     }
 
-    public Color getColor() {
-        return color;
-    }
 
 }

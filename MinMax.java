@@ -1,7 +1,9 @@
 package gameplaying_algorithms;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.*;
 
 public class MinMax {
 
@@ -59,7 +61,7 @@ public class MinMax {
                     y++;
                 }
             }
-            info[currElement] = new InformationAboutStep(x, y, color);
+            info[currElement] = new InformationAboutStep(x, y);
             if (y == 14) {
                 y = 0;
                 x++;
@@ -70,35 +72,17 @@ public class MinMax {
         return info;
     }
 
-    public void evaluateFirstLevel(InformationAboutStep[] info) {
-        for (InformationAboutStep i : info) {
-            startingBoard.nextStep(i.getX(), i.getY(), color);
-            if (startingBoard.isFinished()) {
-                i.setValue(startingBoard.scoreOfTheBoard(color));
-            } else {
-                i.setValue(evaluateMin(depth - 1, startingBoard));
-            }
-            startingBoard.removePiece(i.getX(), i.getY());
-            System.out.println("score: " + i.getValue() + "; coordinates:" + i.getX() + ", " + i.getY());
-        }
-
-    }
-
     public int evaluateMax(int levelsLeft, Board b) {
-        //todo 1d array
         Cell[][] cells = b.getCells();
         int returnValue = Integer.MIN_VALUE;
         for (int x = 0; x < cells.length; x++) {
             for (int y = 0; y < cells[x].length; y++) {
-                //todo set instead (numbers)
                 if (cells[x][y].isEmpty()) {
                     b.nextStep(x, y, color);
                     int val;
-                    //todo moving outside of for
                     if (levelsLeft == 0 || b.isFinished() || b.numOfFreePlaces() == 0) {
                         val = b.scoreOfTheBoard(color);
-                    }
-                    else {
+                    } else {
                         val = evaluateMin(levelsLeft - 1, b);
                     }
                     if (returnValue == Integer.MIN_VALUE) {
@@ -116,20 +100,16 @@ public class MinMax {
     }
 
     public int evaluateMin(int levelsLeft, Board b) {
-        //todo 1d array
         Cell[][] cells = b.getCells();
         int returnValue = Integer.MIN_VALUE;
         for (int x = 0; x < cells.length; x++) {
             for (int y = 0; y < cells[x].length; y++) {
-                //todo set instead (numbers)
                 if (cells[x][y].isEmpty()) {
                     b.nextStep(x, y, opponent);
                     int val;
-                    //todo moving outside of for
                     if (levelsLeft == 0 || b.isFinished() || b.numOfFreePlaces() == 0) {
                         val = b.scoreOfTheBoard(color);
-                    }
-                    else {
+                    } else {
                         val = evaluateMax(levelsLeft - 1, b);
                     }
                     if (returnValue == Integer.MIN_VALUE) {
@@ -144,6 +124,69 @@ public class MinMax {
             }
         }
         return returnValue;
+    }
+
+    static List<Board> boards = new ArrayList<>();
+
+    public class Evaluate implements Callable<InformationAboutStep> {
+        InformationAboutStep step;
+        Board board;
+        int number;
+
+        public Evaluate(InformationAboutStep step, Board board, int num) {
+            this.step = step;
+            this.board = board;
+            this.number = num;
+        }
+
+        @Override
+        public InformationAboutStep call() throws Exception {
+            Board localBoard = getBoard();
+            localBoard.nextStep(step.getX(), step.getY(), color);
+            int score = localBoard.scoreOfTheBoard(color);
+            if (score == 1000)
+                step.setValue(1000);
+            else
+                step.setValue(evaluateMin(depth - 1, localBoard));
+            System.out.println("Info " + number + ", X = " + step.getX() + ", Y =" + step.getY() + ", v = " + step.getValue());
+            localBoard.removePiece(step.getX(), step.getY());
+            setBoard(localBoard);
+            return step;
+        }
+
+        public synchronized Board getBoard() {
+            if (boards.size() > 0) {
+                return boards.remove(boards.size() - 1);
+            }
+            return board.clone();
+        }
+
+        public synchronized void setBoard(Board board) {
+            boards.add(board);
+        }
+    }
+
+    public void evaluateFirstLevel(InformationAboutStep[] info) {
+        ExecutorService threadPool = Executors.newFixedThreadPool(6);
+        List<Future<InformationAboutStep>> futures = new ArrayList<>();
+        int count = 0;
+        long start = System.currentTimeMillis();
+        boards.clear();
+        for (InformationAboutStep step : info) {
+            Future<InformationAboutStep> future = threadPool.submit(new Evaluate(step, startingBoard, count++));
+            futures.add(future);
+        }
+        for (Future<InformationAboutStep> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("Work time " + (end - start) / 1000. + ", sec");
     }
 
 }

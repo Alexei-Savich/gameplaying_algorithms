@@ -33,6 +33,18 @@ public class Board {
         numberOfFreeSpaces = x * y;
     }
 
+    public Board(int x, int y, int numberOfFreeSpaces) {
+        sizeX = x;
+        sizeY = y;
+        cells = new Cell[x][y];
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++) {
+                cells[i][j] = new Cell(i, j);
+            }
+        }
+        this.numberOfFreeSpaces = numberOfFreeSpaces;
+    }
+
     public boolean nextStep(int x, int y, Color c) {
         if (cells[x][y].isEmpty()) {
             cells[x][y].addPiece(c);
@@ -174,7 +186,7 @@ public class Board {
 
     @Override
     public Board clone() {
-        Board b = new Board(sizeX, sizeY);
+        Board b = new Board(sizeX, sizeY, numberOfFreeSpaces);
         for (int i = 0; i < cells.length; i++) {
             for (int j = 0; j < cells[i].length; j++) {
                 Color c = cells[i][j].getColor();
