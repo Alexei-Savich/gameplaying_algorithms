@@ -1,18 +1,26 @@
 package gameplaying_algorithms;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.*;
 
 public class MinMax {
 
     private final Board startingBoard;
     private final Color color;
     private final int depth;
+    private final Color opponent;
 
     public MinMax(Board startingBoard, Color color, int depth) {
         this.startingBoard = startingBoard;
         this.color = color;
         this.depth = depth;
+        if (color.equals(Color.WHITE)) {
+            opponent = Color.BLACK;
+        } else {
+            opponent = Color.WHITE;
+        }
     }
 
     public String nextStep() {
@@ -53,7 +61,7 @@ public class MinMax {
                     y++;
                 }
             }
-            info[currElement] = new InformationAboutStep(x, y, color);
+            info[currElement] = new InformationAboutStep(x, y);
             if (y == 14) {
                 y = 0;
                 x++;
@@ -64,70 +72,24 @@ public class MinMax {
         return info;
     }
 
-    public void evaluateFirstLevel(InformationAboutStep[] info) {
-        for (InformationAboutStep i : info) {
-            startingBoard.nextStep(i.getX(), i.getY(), color);
-            if (startingBoard.isFinished()) {
-                i.setValue(startingBoard.scoreOfTheBoard(color));
-            } else {
-                i.setValue(evaluate(depth - 1, startingBoard, nextColor(color), false));
-            }
-            startingBoard.removePiece(i.getX(), i.getY());
-        }
-
-    }
-
-
-    //todo checking for the winning situation
-    //todo check for number of free spaces
-    public int evaluate(int levelsLeft, Board b, Color curr, boolean isMax) {
+    public int evaluateMax(int levelsLeft, Board b) {
         Cell[][] cells = b.getCells();
         int returnValue = Integer.MIN_VALUE;
         for (int x = 0; x < cells.length; x++) {
-            if (levelsLeft > 1) {
-                System.out.println("Level " + levelsLeft + ", X =" + x + ", val = " + returnValue);
-            }
             for (int y = 0; y < cells[x].length; y++) {
-                //finding free space
                 if (cells[x][y].isEmpty()) {
-                    b.nextStep(x, y, curr);
-//                    if (x == 10 && y == 14) {
-//                        System.out.println(b.printBoard());
-//                    }
+                    b.nextStep(x, y, color);
                     int val;
-                    //if STOP CONDITION, then evaluate this board
                     if (levelsLeft == 0 || b.isFinished() || b.numOfFreePlaces() == 0) {
-                        //System.out.println(b.printBoard());
                         val = b.scoreOfTheBoard(color);
-                        //System.out.println(val);
-
+                    } else {
+                        val = evaluateMin(levelsLeft - 1, b);
                     }
-                    //else recursion
-                    else {
-                        Color next = nextColor(curr);
-                        boolean newIsMax = minMaxChange(isMax);
-                        val = evaluate(levelsLeft - 1, b, next, newIsMax);
-                    }
-//                    if (val == Integer.MIN_VALUE) {
-//                        val = b.scoreOfTheBoard(color);
-//                        //System.out.println("Error??? " + levelsLeft + ", X " + x + " y = " + y);
-//                    }
-//                    if (val != Integer.MIN_VALUE && val != 0) {
-//                        System.out.println("Error??? " + levelsLeft + ", X " + x + " y = " + y + ", val =" + val);
-//                    }
-                    //if returnValue == Integer.MIN_VALUE, then it is the first iteration
                     if (returnValue == Integer.MIN_VALUE) {
                         returnValue = val;
-                        //else use MinMax
                     } else {
-                        if (isMax) {
-                            if (val > returnValue) {
-                                returnValue = val;
-                            }
-                        } else {
-                            if (val < returnValue) {
-                                returnValue = val;
-                            }
+                        if (val > returnValue) {
+                            returnValue = val;
                         }
                     }
                     b.removePiece(x, y);
@@ -137,24 +99,94 @@ public class MinMax {
         return returnValue;
     }
 
-    private Color nextColor(Color curr) {
-        Color next;
-        if (curr.equals(Color.WHITE)) {
-            next = Color.BLACK;
-        } else {
-            next = Color.WHITE;
+    public int evaluateMin(int levelsLeft, Board b) {
+        Cell[][] cells = b.getCells();
+        int returnValue = Integer.MIN_VALUE;
+        for (int x = 0; x < cells.length; x++) {
+            for (int y = 0; y < cells[x].length; y++) {
+                if (cells[x][y].isEmpty()) {
+                    b.nextStep(x, y, opponent);
+                    int val;
+                    if (levelsLeft == 0 || b.isFinished() || b.numOfFreePlaces() == 0) {
+                        val = b.scoreOfTheBoard(color);
+                    } else {
+                        val = evaluateMax(levelsLeft - 1, b);
+                    }
+                    if (returnValue == Integer.MIN_VALUE) {
+                        returnValue = val;
+                    } else {
+                        if (val < returnValue) {
+                            returnValue = val;
+                        }
+                    }
+                    b.removePiece(x, y);
+                }
+            }
         }
-        return next;
+        return returnValue;
     }
 
-    private boolean minMaxChange(boolean curr) {
-        boolean next;
-        if (curr) {
-            next = false;
-        } else {
-            next = true;
+    static List<Board> boards = new ArrayList<>();
+
+    public class Evaluate implements Callable<InformationAboutStep> {
+        InformationAboutStep step;
+        Board board;
+        int number;
+
+        public Evaluate(InformationAboutStep step, Board board, int num) {
+            this.step = step;
+            this.board = board;
+            this.number = num;
         }
-        return next;
+
+        @Override
+        public InformationAboutStep call() throws Exception {
+            Board localBoard = getBoard();
+            localBoard.nextStep(step.getX(), step.getY(), color);
+            int score = localBoard.scoreOfTheBoard(color);
+            if (score == 1000)
+                step.setValue(1000);
+            else
+                step.setValue(evaluateMin(depth - 1, localBoard));
+            System.out.println("Info " + number + ", X = " + step.getX() + ", Y =" + step.getY() + ", v = " + step.getValue());
+            localBoard.removePiece(step.getX(), step.getY());
+            setBoard(localBoard);
+            return step;
+        }
+
+        public synchronized Board getBoard() {
+            if (boards.size() > 0) {
+                return boards.remove(boards.size() - 1);
+            }
+            return board.clone();
+        }
+
+        public synchronized void setBoard(Board board) {
+            boards.add(board);
+        }
+    }
+
+    public void evaluateFirstLevel(InformationAboutStep[] info) {
+        ExecutorService threadPool = Executors.newFixedThreadPool(6);
+        List<Future<InformationAboutStep>> futures = new ArrayList<>();
+        int count = 0;
+        long start = System.currentTimeMillis();
+        boards.clear();
+        for (InformationAboutStep step : info) {
+            Future<InformationAboutStep> future = threadPool.submit(new Evaluate(step, startingBoard, count++));
+            futures.add(future);
+        }
+        for (Future<InformationAboutStep> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("Work time " + (end - start) / 1000. + ", sec");
     }
 
 }
