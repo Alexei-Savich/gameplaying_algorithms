@@ -11,7 +11,7 @@ public class SmallTests {
                 System.out.println("Turn of the white:");
                 game.nextStep(Color.WHITE);
             } else {
-                if (counter > 10) {
+                if (counter > 7) {
                     System.out.println("Turn of the black:");
                     int depth = 3;
                     MinMax mm = new MinMax(game.getBoard(), Color.BLACK, depth);
@@ -39,17 +39,3 @@ public class SmallTests {
     }
 
 }
-/*
-0
-220
-1
-206
-22
-192
-66
-178
-88
-224
-55
-44
- */

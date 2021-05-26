@@ -8,11 +8,17 @@ public class MinMax {
     private final Board startingBoard;
     private final Color color;
     private final int depth;
+    private final Color opponent;
 
     public MinMax(Board startingBoard, Color color, int depth) {
         this.startingBoard = startingBoard;
         this.color = color;
         this.depth = depth;
+        if (color.equals(Color.WHITE)) {
+            opponent = Color.BLACK;
+        } else {
+            opponent = Color.WHITE;
+        }
     }
 
     public String nextStep() {
@@ -70,64 +76,36 @@ public class MinMax {
             if (startingBoard.isFinished()) {
                 i.setValue(startingBoard.scoreOfTheBoard(color));
             } else {
-                i.setValue(evaluate(depth - 1, startingBoard, nextColor(color), false));
+                i.setValue(evaluateMin(depth - 1, startingBoard));
             }
             startingBoard.removePiece(i.getX(), i.getY());
+            System.out.println("score: " + i.getValue() + "; coordinates:" + i.getX() + ", " + i.getY());
         }
 
     }
 
-
-    //todo checking for the winning situation
-    //todo check for number of free spaces
-    public int evaluate(int levelsLeft, Board b, Color curr, boolean isMax) {
+    public int evaluateMax(int levelsLeft, Board b) {
+        //todo 1d array
         Cell[][] cells = b.getCells();
         int returnValue = Integer.MIN_VALUE;
         for (int x = 0; x < cells.length; x++) {
-            if (levelsLeft > 1) {
-                System.out.println("Level " + levelsLeft + ", X =" + x + ", val = " + returnValue);
-            }
             for (int y = 0; y < cells[x].length; y++) {
-                //finding free space
+                //todo set instead (numbers)
                 if (cells[x][y].isEmpty()) {
-                    b.nextStep(x, y, curr);
-//                    if (x == 10 && y == 14) {
-//                        System.out.println(b.printBoard());
-//                    }
+                    b.nextStep(x, y, color);
                     int val;
-                    //if STOP CONDITION, then evaluate this board
+                    //todo moving outside of for
                     if (levelsLeft == 0 || b.isFinished() || b.numOfFreePlaces() == 0) {
-                        //System.out.println(b.printBoard());
                         val = b.scoreOfTheBoard(color);
-                        //System.out.println(val);
-
                     }
-                    //else recursion
                     else {
-                        Color next = nextColor(curr);
-                        boolean newIsMax = minMaxChange(isMax);
-                        val = evaluate(levelsLeft - 1, b, next, newIsMax);
+                        val = evaluateMin(levelsLeft - 1, b);
                     }
-//                    if (val == Integer.MIN_VALUE) {
-//                        val = b.scoreOfTheBoard(color);
-//                        //System.out.println("Error??? " + levelsLeft + ", X " + x + " y = " + y);
-//                    }
-//                    if (val != Integer.MIN_VALUE && val != 0) {
-//                        System.out.println("Error??? " + levelsLeft + ", X " + x + " y = " + y + ", val =" + val);
-//                    }
-                    //if returnValue == Integer.MIN_VALUE, then it is the first iteration
                     if (returnValue == Integer.MIN_VALUE) {
                         returnValue = val;
-                        //else use MinMax
                     } else {
-                        if (isMax) {
-                            if (val > returnValue) {
-                                returnValue = val;
-                            }
-                        } else {
-                            if (val < returnValue) {
-                                returnValue = val;
-                            }
+                        if (val > returnValue) {
+                            returnValue = val;
                         }
                     }
                     b.removePiece(x, y);
@@ -137,24 +115,35 @@ public class MinMax {
         return returnValue;
     }
 
-    private Color nextColor(Color curr) {
-        Color next;
-        if (curr.equals(Color.WHITE)) {
-            next = Color.BLACK;
-        } else {
-            next = Color.WHITE;
+    public int evaluateMin(int levelsLeft, Board b) {
+        //todo 1d array
+        Cell[][] cells = b.getCells();
+        int returnValue = Integer.MIN_VALUE;
+        for (int x = 0; x < cells.length; x++) {
+            for (int y = 0; y < cells[x].length; y++) {
+                //todo set instead (numbers)
+                if (cells[x][y].isEmpty()) {
+                    b.nextStep(x, y, opponent);
+                    int val;
+                    //todo moving outside of for
+                    if (levelsLeft == 0 || b.isFinished() || b.numOfFreePlaces() == 0) {
+                        val = b.scoreOfTheBoard(color);
+                    }
+                    else {
+                        val = evaluateMax(levelsLeft - 1, b);
+                    }
+                    if (returnValue == Integer.MIN_VALUE) {
+                        returnValue = val;
+                    } else {
+                        if (val < returnValue) {
+                            returnValue = val;
+                        }
+                    }
+                    b.removePiece(x, y);
+                }
+            }
         }
-        return next;
-    }
-
-    private boolean minMaxChange(boolean curr) {
-        boolean next;
-        if (curr) {
-            next = false;
-        } else {
-            next = true;
-        }
-        return next;
+        return returnValue;
     }
 
 }

@@ -92,6 +92,7 @@ public class Board {
         int deltaMaxX = maxX - x;
         int deltaMinX = x - minX;
 
+        counter = 0;
         minX = x - Math.min(deltaMaxY, deltaMinX);
         maxY = y + Math.min(deltaMaxY, deltaMinX);
 
@@ -113,6 +114,7 @@ public class Board {
             }
         }
 
+        counter = 0;
         minX = x - Math.min(deltaMinX, deltaMinY);
         minY = y - Math.min(deltaMinX, deltaMinY);
 
@@ -195,6 +197,7 @@ public class Board {
     public boolean removePiece(int x, int y) {
         whiteWon = false;
         blackWon = false;
+        isFinished = false;
         //todo maybe check of this cell is empty
         //(this method is called only in MinMax -> piece would be ALWAYS removed)
         numberOfFreeSpaces++;
